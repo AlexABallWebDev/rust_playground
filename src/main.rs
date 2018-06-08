@@ -5,16 +5,14 @@
 // by Tensor Programming on Youtube:
 // https://www.youtube.com/watch?v=y7iSQ3s_yms&index=3&list=PLJbE2Yu2zumDF6BX6_RdPisRVHgzV02NW
 
-// import a library/external dependency
-use std::mem;
-
 fn main() {
     // Note that functions that do not return anything will implicitly return an empty tuple.
     // _mutability();
     // _tuples();
     // _arrays();
     // _strings();
-    _ownership();
+    // _ownership();
+    _structures();
 }
 
 // underscore suppresses the "unused" warning.
@@ -53,6 +51,10 @@ fn _arrays() {
     println!("{:?}", arra[0]);
     // print array length
     println!("{:?}", arra.len());
+
+    // import a library/external dependency
+    use std::mem;
+
     // print array memory size
     println!("{:?}", mem::size_of_val(&arra));
 
@@ -76,6 +78,8 @@ fn _strings() {
     println!("{}", combined_string);
 }
 
+/// This function covers notes about ownership and borrowing, with some
+/// introduction to memory references and dereferencing.
 fn _ownership() {
     // scope ends at the closing curly brace, so we cannot print _a after its scope ends.
     {
@@ -101,7 +105,11 @@ fn _ownership() {
     for i in 1..100 {
         v.push(i);
     }
-    _move(v);
+
+    fn move_v(v: Vec<i32>) {
+        println!("_move() took v: {}", v[10] + v[15]);
+    }
+    move_v(v);
     // If we do not get ownership of the referenced v back, then we can no
     // longer use it since we gave it to _move().
     // println!("{}", v[0]);
@@ -114,7 +122,11 @@ fn _ownership() {
     let a = 20;
     let b = 30;
     println!("before calling _copy() main has a: {} and b: {}", a, b);
-    _copy(a, b);
+
+    fn copy(a: i32, b: i32) {
+        println!("_copy() combined a and b to make: {}", a + b);
+    }
+    copy(a, b);
     println!("After calling _copy() main still has a: {} and b: {}", a, b);
     println!("Copying example end.");
 
@@ -128,18 +140,28 @@ fn _ownership() {
 
     // v2 gets returned after it is borrowed by the function,
     // so v2 has ownership of its value again.
-    v2 = _return_after_borrowing(v2);
+    fn return_after_borrowing(v: Vec<i32>) -> Vec<i32> {
+        println!("_return_after_borrowing() borrowed and will return v2: {}", v[50] + v[51]);
+        v
+    }
+    v2 = return_after_borrowing(v2);
     println!("after being returned from a function that took v2 as Vec as a param: {}", v2[50]);
 
     // pass a reference to the function. The function will dereference v2 to access it.
     // When the function is finished, then v2 will own the vector again.
-    _borrow_dereference(&v2);
+    fn borrow_dereference(v: &Vec<i32>) {
+        println!("_borrow_dereference borrowed and dereferenced v2: {}", (*v)[50] + (*v)[51]);
+    }
+    borrow_dereference(&v2);
     println!("after being passed as a reference to a function that took v2 and dereferenced it, v2 can be accessed in main: {}", v2[50]);
 
     // pass a reference to the function. It sounds like there is
     // some automatic dereferencing happening here. 
     // When the function is finished, then v2 will own the vector again.
-    _borrow_dereference(&v2);
+    fn borrow_without_dereference(v: &Vec<i32>) {
+        println!("_borrow_without_dereference borrowed v2: {}", v[50] + v[51]);
+    }
+    borrow_dereference(&v2);
     println!("after being passed as a reference to a function, v2 can be accessed in main: {}", v2[50]);
     println!("Borrowing example end.");
 
@@ -150,6 +172,10 @@ fn _ownership() {
     // vec! is a macro for creating a vector.
     let v3 = vec![4, 5, 3, 6, 7, 4, 8, 6, 4, 2, 4, 2, 5, 3, 7, 7];
     println!("created v3: {}", v3[0]);
+
+    fn count(v: &Vec<i32>, value: i32) -> usize {
+        v.into_iter().filter(|&&x| x == value).count()
+    }
     for &i in &v3 {
         let i_count = count(&v3, i);
         println!("{} is repeated {} times", i, i_count);
@@ -160,27 +186,79 @@ fn _ownership() {
     println!("Loop and function borrowing example end.");
 }
 
-fn _move(v: Vec<i32>) {
-    println!("_move() took v: {}", v[10] + v[15]);
-}
+/// This function covers notes about structures, methods, related functions
+/// (like Java static methods), and display/debug traits.
+fn _structures() {
+    // struct contains data (properties).
+    // The derive annotation is for deriving the Debug trait, used later for
+    // printing a Rectangle with debug info in println!.
+    #[derive(Debug)]
+    struct Rectangle {
+        width: u32,
+        height: u32,
+    }
 
-fn _copy(a: i32, b: i32) {
-    println!("_copy() combined a and b to make: {}", a + b);
-}
+    // access properties with a period (.)
+    fn area(rect: &Rectangle) -> u32 {
+        rect.width * rect.height
+    }
 
-fn _return_after_borrowing(v: Vec<i32>) -> Vec<i32> {
-    println!("_return_after_borrowing() borrowed and will return v2: {}", v[50] + v[51]);
-    v
-}
+    // instantiate a Rectangle structure.
+    let rect = Rectangle {
+        width: 35,
+        height: 55,
+    };
 
-fn _borrow_dereference(v: &Vec<i32>) {
-    println!("_borrow_dereference borrowed and dereferenced v2: {}", (*v)[50] + (*v)[51]);
-}
+    println!("Rectangle with {}x{} has area: {}", rect.width, rect.height, area(&rect));
 
-fn _borrow_without_dereference(v: &Vec<i32>) {
-    println!("_borrow_without_dereference borrowed v2: {}", v[50] + v[51]);
-}
+    // Create an implementation of Rectangle that has a method.
+    impl Rectangle {
+        fn area(&self) -> u32 {
+            self.width * self.height
+        }
 
-fn count(v: &Vec<i32>, value: i32) -> usize {
-    v.into_iter().filter(|&&x| x == value).count()
+        fn show(&self) {
+            println!("Rectangle show: {}x{} has area: {}", self.width, self.height, self.area());
+        }
+    }
+    println!("Rectangle area method: {}x{} has area: {}", rect.width, rect.height, rect.area());
+
+    // Related functions are like static methods in Java. Related functions
+    // can be defined in the same impl block, or in a separate one like this.
+    // Separating related functions and methods like this is encouraged.
+    impl Rectangle {
+        // related function that creates a Rectangle.
+        fn new(width: u32, height: u32) -> Rectangle {
+            Rectangle {
+                // Note that if the parameter names are the same as
+                // the properties, you don't need to give the value.
+                width,//: width,
+                height,//: height,
+            }
+        }
+    }
+
+    // Use the related function to create a new rectangle.
+    let new_rect = Rectangle::new(57, 83);
+    new_rect.show();
+
+    // Because of the derived Debug trait on Rectangle, we can print it with
+    // debug info.
+    println!("Debug new_rect: {:#?}", new_rect);
+
+    // import for the Display trait.
+    use std::fmt;
+
+    // This impl is for adding the Display trait to the Rectangle.
+    impl fmt::Display for Rectangle {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            // write! macro is used to write strings to arbitrary writers.
+            // Just like Java, we can use it to write to files or buffers
+            // or fun things like that.
+            write!(f, "({}, {}) and area: {}", self.width, self.height, self.area())
+        }
+    }
+
+    // With the Display trait, we can print it without debug.
+    println!("Print (Display) new_rect: {}", new_rect);
 }
