@@ -13,7 +13,8 @@ fn main() {
     // _strings();
     // _ownership();
     // _structures();
-    _control_flow();
+    // _control_flow();
+    _enums_and_options();
 }
 
 // underscore suppresses the "unused" warning.
@@ -439,4 +440,147 @@ fn _control_flow() {
         _ => 0,
     };
     println!("n2 was assigned: {}", n2);
+}
+
+fn _enums_and_options() {
+    // allows dead, unused code. Another annotation will disallow dead code.
+    //#![allow(dead_code)]
+
+    // define an enum with its types.
+    // enum Direction {
+        // types in an enum can be structs, containing data
+        // Up(u32),
+        // Down {x: u32, y: f64},
+
+        // types can also be unit structs which contain no data
+        // Left,
+        // Right,
+    // }
+
+    #[derive(Debug)]
+    struct Point {
+        x: i32,
+        y: i32,
+    }
+
+    #[derive(Debug)]
+    enum Direction {
+        _Up(Point),
+        _Down(Point),
+        _Left(Point),
+        _Right(Point),
+    }
+
+    #[derive(Debug)]
+    enum Keys {
+        _UpKey(String),
+        _DownKey(String),
+        _LeftKey(String),
+        _RightKey(String),
+    }
+
+    // impl of Direction that matches a direction and returns a key.
+    impl Direction {
+        fn match_direction(&self) -> Keys {
+            match *self {
+                Direction::_Up(_) => Keys::_UpKey(String::from("Pressed w")),
+                Direction::_Down(_) => Keys::_DownKey(String::from("Pressed s")),
+                Direction::_Left(_) => Keys::_LeftKey(String::from("Pressed a")),
+                Direction::_Right(_) => Keys::_RightKey(String::from("Pressed d")),
+            }
+        }
+    }
+
+    impl Keys {
+        fn destruct(&self) -> &String {
+            match *self {
+                Keys::_UpKey(ref s) => s,
+                Keys::_DownKey(ref s) => s,
+                Keys::_LeftKey(ref s) => s,
+                Keys::_RightKey(ref s) => s,
+            }
+        }
+    }
+
+    // create an instance of the up direction
+    let up_dir = Direction::_Up(Point {x: 0, y: 1});
+    let up_key = up_dir.match_direction();
+    println!("up_key: {:?}", up_key);
+    let up_key_string = up_key.destruct();
+    println!("up_key_string from destruct(): {}", up_key_string);
+
+    // intro to ref keyword. ref keyword creates a reference to a value.
+    let u = 10; // u owns 10
+    let v = &u; // v gets a reference to the 10 that u owns
+    let ref z = u; // z gets a reference to the 10 that u owns
+    println!("ref keyword with debug values: u: {:?} v: {:?} z: {:?}", u, v, z);
+    // prove that z and v are the same. You cannot compare u == v because a
+    // reference to an i32 is a different type from an i32.
+    if z == v {
+        println!("z == v evaluated to true.");
+    } else {
+        println!("z == v evaluated to false.");
+    }
+
+    // Polymorphism example, implemented using match and enums.
+    enum Shape {
+        Rectangle {width: u32, height: u32},
+        Square(u32),
+        Circle(f64),
+    }
+
+    // define method that any Shape can use.
+    impl Shape {
+        fn area(&self) -> f64 {
+            match *self {
+                // note the type cast to f64. This is done to keep the
+                // returned type consistent since the circle will return an f64.
+                Shape::Rectangle {width, height} => (width * height) as f64,
+                Shape::Square(ref s) => (s * s) as f64,
+                Shape::Circle(ref r) => 3.14 * (r * r),
+            }
+        }
+    }
+
+    // Because each of these objects are shapes (types from the Shape enum) they
+    // all have the area method.
+    let rect = Shape::Rectangle{width: 10, height: 70};
+    let square = Shape::Square(10);
+    let circle = Shape::Circle(4.5);
+
+    println!("polymorphism example:", );
+    let rect_area = rect.area();
+    println!("rect area: {}", rect_area);
+
+    let square_area = square.area();
+    println!("rect area: {}", square_area);
+
+    let circle_area = circle.area();
+    println!("rect area: {}", circle_area);
+
+    // options. Option enum from std library looks like:
+    // enum Option<T> {
+    //     Some(T),
+    //     None,
+    // }
+
+    // division returns an optional f64.
+    fn division(x: f64, y: f64) -> Option<f64> {
+        if y == 0.0 {
+            None
+        } else {
+            Some(x / y)
+        }
+    }
+
+    // optionals checked via match. If None is returned (think null or nil)
+    // then do something to handle it. It looks like this prevents situations
+    // were null is an unhandled case.
+    let res = division(5.0, 7.0);
+    // let res = division(5.0, 0.0);
+    match res {
+        // display 7 places past the decimal point.
+        Some(x) => println!("{:.7}", x),
+        None => println!("cannot divide by 0"),
+    }
 }
