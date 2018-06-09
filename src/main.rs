@@ -12,7 +12,8 @@ fn main() {
     // _arrays();
     // _strings();
     // _ownership();
-    _structures();
+    // _structures();
+    _control_flow();
 }
 
 // underscore suppresses the "unused" warning.
@@ -261,4 +262,181 @@ fn _structures() {
 
     // With the Display trait, we can print it without debug.
     println!("Print (Display) new_rect: {}", new_rect);
+}
+
+fn _control_flow() {
+    // logical operators: == != < > >= <=
+    let num = 6;
+
+    // if conditions need to evaluate to a boolean.
+    // No wierd type coercion for if conditions like in javascript.
+
+    // if block
+    if num < 10 {
+        println!("{} is less than 10", num);
+    }
+
+    // if with else if and else
+    if num % 4 == 0 {
+        println!("{} is divisible by 4", num);
+    } else if num % 3 == 0 {
+        println!("{} is divisible by 3", num);
+    } else {
+        println!("example of an else block.");
+    }
+
+    // binding (initialize/set a variable) with if and else.
+    // This kind of seems like ternary operators in other languages.
+    let condition = true;
+    let my_num = if condition {
+        50
+    } else {
+        76
+    };
+    println!("myNum: {}", my_num);
+
+    // Infinite loop example
+    // loop {
+    //     println!("infinite loop");
+    // }
+
+    // loop example
+    let mut count = 0;
+    loop {
+        println!("in loop, count: {}", count);
+        count += 1;
+
+        if count >= 10 {
+            // it looks like you have to explicitly break loops.
+            // there is no "while condition".
+            // break, without any labels given, breaks the innermost loop
+            // (assuming nested loops).
+            break;
+        }
+    }
+
+    // nested loop with labels example. Nested loops can break by label.
+    let mut end_condition = false;
+    'a: loop {
+        println!("loop a");
+        'b: loop {
+            println!("loop b");
+            'c: loop {
+                println!("loop c");
+
+                if end_condition {
+                    // end our loops by breaking the outermost one.
+                    break 'a;
+                }
+                end_condition = true;
+
+                // break loop b, meaning we start the next line in loop a.
+                break 'b;
+            }
+            // println!("This print in loop b will not run since c will break b or a.");
+        }
+
+        // continue can also be given a label to start the first line in loop a.
+        continue 'a;
+
+        // println!("This print will not run.");
+    }
+
+    // binding loops
+    let x = loop {
+        // break acts like "return" in this context.
+        break 10;
+    };
+    println!("x = {}", x);
+
+    // while loop example
+    let mut get_to_zero = 10;
+    while get_to_zero != 0 {
+        println!("while loop: {}!", get_to_zero);
+        get_to_zero = get_to_zero - 1;
+    }
+
+    // for loop example. for loops look similar to python.
+    let my_vec = vec![1, 2, 3, 4, 5];
+    for i in my_vec {
+        println!("for loop vec example i: {}", i);
+    }
+
+    // for loop without a list/array/vector.
+    // Note that the range does not include the endpoint
+    // (prints to 9 rather than 10).
+    for i in 1..10 {
+        println!("for loop with range example i: {}", i);
+    }
+
+    // for loop with inclusive range.
+    // Was experimental when the tutorial was published, but it seems to work now.
+    for i in 1..=10 {
+        println!("for loop with range INCLUSIVE example i: {}", i);
+    }
+
+    // match example. Similar to switch statements in other languages.
+    let mat = 5;
+    match mat {
+        1 => println!("one"),
+        2 => println!("two"),
+        3 => println!("three"),
+        4 => println!("four"),
+        5 => println!("five"),
+        _ => println!("something else. This is like a default."),
+    }
+
+    // match example with multiple conditions leading to the same case.
+    // includes single bar (|) or-like options and a range using ...
+    let mat2 = 19;
+    println!("Extra matching example, mat2: {}", mat2);
+    match mat2 {
+        1 => println!("one"),
+        2 | 3 | 5 | 7 | 11 => println!("This is a prime"),
+        // note this range is inclusive, including 19
+        13 ... 19 => println!("This is a \"teen\"", ),
+        _ => println!("This is not special", ),
+    }
+
+    // match with conditions using tuples. We can match on one index,
+    // then retrieve the other index for use in a case
+    // (in this example, print it out).
+    let my_tuple = (0, -2);
+    println!("matching example with tuples: {:?}", my_tuple);
+    match my_tuple {
+        (0, y) => println!("first index is 0, y: {}", y),
+        (x, 0) => println!("second index is 0, x: {}", x),
+        _ => println!("tuple has no match"),
+    }
+
+    // match with extra conditions.
+    let pair = (5, -5);
+    println!("matching with extra conditions: {:?}", pair);
+    match pair {
+        (x, y) if x == y => println!("x equals y"),
+        (x, y) if x + y == 0 => println!("x plus y equals zero"),
+        (x, _) if x % 2 == 0 => println!("x is even"),
+        _ => println!("no match"),
+    }
+
+    // match with binding a variable to the matched value
+    // good for accessing a value that we do not have ownership of,
+    // since the bound variable (n) is basically a clone of the given value (p).
+    let p = 5;
+    println!("matching with binding a variable to the match: {}", p);
+    match p {
+        n @ 1 ... 12 => println!("n is between 1-12: {}", n),
+        n @ 13 ... 19 => println!("n is between 13-19: {}", n),
+        _ => println!("no match"),
+    }
+
+    // match can also be used to bind a variable.
+    let p2 = 14;
+    println!("binding a variable with a match: {}", p2);
+    let n2 = match p2 {
+        n @ 1 ... 12 => n + 1,
+        n @ 13 ... 19 => n + 2,
+        _ => 0,
+    };
+    println!("n2 was assigned: {}", n2);
 }
