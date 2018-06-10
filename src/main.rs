@@ -14,7 +14,9 @@ fn main() {
     // _ownership();
     // _structures();
     // _control_flow();
-    _enums_and_options();
+    // _enums_and_options();
+    // _vectors_and_hashmaps();
+    _casting_and_lets_and_result();
 }
 
 // underscore suppresses the "unused" warning.
@@ -583,4 +585,162 @@ fn _enums_and_options() {
         Some(x) => println!("{:.7}", x),
         None => println!("cannot divide by 0"),
     }
+}
+
+fn _vectors_and_hashmaps() {
+    // vectors have variable length and can grow or shrink.
+    // slices (think strings) are very similar.
+    // they are like lists in python.
+    // let x = vec![1,2,3,4];
+    let mut v: Vec<i32> = Vec::new();
+    v.push(5);
+    v.push(6);
+    v.push(7);
+    v.push(8);
+
+    // iterating over elements in a vector
+    for elem in &v {
+        println!("{}", elem);
+    }
+
+    // list everything in the vector with debug info.
+    // The length and capacity can be accessed with these methods.
+    println!("v: {:?} length: {} capacity: {}", &v, v.len(), v.capacity());
+
+    // see the vector grow
+    v.push(9);
+    println!("v: {:?} length: {} capacity: {}", &v, v.len(), v.capacity());
+
+    // vectors have the pop method (think stacks) to remove the last element
+    // from the vector and returns an option containing the element.
+    // Note that since it is an option, it may return None.
+    println!("{:?}", v.pop());
+    println!("v: {:?}", &v);
+
+    // empty vector test
+    println!("empty vector:");
+    let mut empty_vec: Vec<i32> = Vec::new();
+    println!("empty_vec: {:?} length: {} capacity: {}", &empty_vec, empty_vec.len(), empty_vec.capacity());
+    println!("empty_vec.pop(): {:?}", empty_vec.pop());
+
+    // example of using polymorphism through enums to get multiple types
+    // into the same vector.
+    #[derive(Debug)]
+    enum Example {
+        Int(i32),
+        Float(f64),
+        Text(String),
+    }
+
+    let multitype_vec = vec![
+        Example::Int(142),
+        Example::Float(12.32),
+        Example::Text(String::from("string")),
+    ];
+    println!("multitype example: {:?}", &multitype_vec);
+
+    // hashmaps
+    use std::collections::HashMap;
+
+    // create a new hashmap
+    let mut hm = HashMap::new();
+
+    // add items with a key and value.
+    hm.insert(String::from("random"), 12);
+    hm.insert(String::from("strings"), 49);
+
+    // iterate over the keys and values.
+    println!("Hashmap hm key: value list");
+    for (k, v) in &hm {
+        println!("{}: {}", k, v);
+    }
+
+    // get a value (in an option) by giving a key.
+    // use match so you can cover the case where a bad key is given,
+    // which will cause get to return None.
+    println!("using hm.get(\"random\"):");
+    match hm.get(&String::from("random")) {
+        Some(&n) => println!("{}", n),
+        _ => println!("no match"),
+    }
+}
+
+fn _casting_and_lets_and_result() {
+    // This is what we used so far to handle options:
+    let s = Some('c');
+    // match s {
+    //     Some(i) => println!("{}", i),
+    //     _ => {},
+    // }
+
+    // the if-let will give us some easier to read syntax when we are working
+    // with options that will either be something or None.
+    if let Some(i) = s {
+        println!("if-let example s: {}", i);
+    }// else {
+    //     {}
+    // }
+
+    // example loop with a counter inside an option.
+    // counts by 2 and then quits at 20.
+    println!("while-let example: ");
+    let mut s = Some(0);
+    // loop {
+    //     match s {
+    //         Some(i) => if i > 19 {
+    //             println!("Quit");
+    //             s = None;
+    //         } else {
+    //             println!("{}", i);
+    //             s = Some(i + 2);
+    //         },
+    //         _ => {
+    //             break;
+    //         }
+    //     }
+    // }
+
+    // example of a while-let loop, does the same thing as the above loop
+    while let Some(i) = s {
+        if i > 19 {
+            println!("Quit");
+            s = None;
+        } else {
+            println!("{}", i);
+            s = Some(i + 2);
+        }
+    }
+
+    // casting is done with the as keyword.
+    let f = 24.4321_f32;
+    let i = f as u8;
+    let c = i as char;
+
+    // c ends up as some wierd character here.
+    println!("casting example: f, i, c");
+    println!("{} {} {}", f, i, c);
+
+    // only u8 can be cast to char. 256 is out of range of char,
+    // but 255 is in range.
+    // println!("{}", 256 as char);
+
+    // Result looks like this. It is similar to Option,
+    // except that instead of None we can have an Err that has some data inside it.
+    // enum Result<T, E> {
+    //     Ok(T),
+    //     Err(E),
+    // }
+
+    // example with Result. Includes opening a File and panic!.
+    println!("Result example (hopefully we don't panic!)", );
+    use std::fs::File;
+    // it looks like rust File can use slashes (unix style) or
+    // backslashes (windows style) when referencing a path to a file.
+    let f = File::open("res/test_result.txt");
+    let _f = match f {
+        Ok(file) => file,
+        Err(error) => {
+            panic!("Result example: There was a problem opening the file: {:?}", error)
+        }
+    };
 }
