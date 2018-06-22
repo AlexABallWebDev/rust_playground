@@ -1,5 +1,5 @@
 // call all intro 1 functions
-pub fn intro_1_notes() {
+pub fn _intro_1_notes() {
     _mutability();
     _tuples();
     _arrays();
